@@ -24,11 +24,19 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+        html {
+            min-height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
         body {
             background-color: var(--bg-color);
             color: var(--text-info);
             min-height: 100vh;
-            overflow: hidden; 
+            overflow-x: hidden;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -37,8 +45,8 @@
 
         /* --- Hiệu ứng Hoa Anh Đào Rơi --- */
         #sakura-container {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100vh;
             pointer-events: none; /* Không cản trở click chuột */
             z-index: 1;
             overflow: hidden;
@@ -116,16 +124,22 @@
         /* --- View Container --- */
         .view-container {
             width: 100%;
-            height: calc(100vh - 100px);
+            min-height: calc(100vh - 100px);
+            height: auto;
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 10;
+            padding: 20px 0 46px;
         }
+        body.vault-page-mode .view-container {
+            align-items: flex-start;
+        }
+
 
         /* 1. Slide View */
         #slide-view {
-            width: 100%; height: 100%;
+            width: 100%; min-height: calc(100vh - 150px);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             cursor: pointer;
         }
@@ -159,29 +173,53 @@
         #form-view { display: none; width: 500px; background: var(--glass-bg); padding: 40px; border-radius: 15px; border: 1px solid var(--glass-border); backdrop-filter: blur(10px);}
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; color: var(--accent); font-weight: bold;}
-        .form-group input { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--text-muted); color: white; border-radius: 8px; outline: none; font-size: 16px;}
-        .form-group input:focus { border-color: var(--accent); }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--text-muted); color: white; border-radius: 8px; outline: none; font-size: 16px;}
+        .form-group textarea { min-height: 92px; resize: vertical; line-height: 1.55; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,245,212,0.12); }
         .btn-submit { width: 100%; padding: 15px; background: var(--accent); color: #000; font-weight: bold; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-top: 10px;}
         .btn-submit:hover { background: #00c4a7; }
 
         /* 3. Kho Lưu Trữ (Vault View) */
         #vault-view {
-            display: none; width: 90%; max-width: 1000px; height: 80%;
-            background: var(--glass-bg); padding: 30px; border-radius: 15px;
-            border: 1px solid var(--glass-border); backdrop-filter: blur(10px);
+            display: none; width: min(96vw, 1280px); min-height: calc(100vh - 150px); height: auto;
+            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035));
+            padding: 24px; border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.14); backdrop-filter: blur(16px);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.08);
             flex-direction: column;
+            margin: 6px auto 70px;
         }
-        .vault-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn-export { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px;}
-        .btn-export:hover { background: #219653; }
+        .vault-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 16px; }
+        .vault-heading { display: flex; align-items: center; gap: 10px; }
+        .vault-badge { font-size: 12px; font-weight: 900; color: #07151f; background: linear-gradient(90deg, var(--accent), #b8fff4); padding: 5px 9px; border-radius: 999px; letter-spacing: 0.5px; }
+        .btn-export { background: linear-gradient(135deg, #27ae60, #00d084); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 10px 22px rgba(39,174,96,0.18);}
+        .btn-export:hover { transform: translateY(-1px); filter: brightness(1.05); }
         
-        .table-container { overflow-y: auto; flex-grow: 1; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { background: rgba(0,0,0,0.5); padding: 15px; color: var(--accent); position: sticky; top: 0; z-index: 2; }
-        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        tr:hover td { background: rgba(255,255,255,0.05); }
-        
-        .btn-delete { background: rgba(239, 35, 60, 0.2); color: var(--danger); border: 1px solid var(--danger); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s;}
+        .vault-dashboard { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+        .stat-card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 13px 14px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
+        .stat-label { color: var(--text-muted); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; }
+        .stat-value { margin-top: 4px; color: #fff; font-size: 24px; font-weight: 900; }
+        .table-container { overflow-x: auto; overflow-y: visible; flex-grow: 0; border-radius: 18px; border: 1px solid rgba(255,255,255,0.12); background: rgba(2,8,23,0.42); box-shadow: inset 0 1px 0 rgba(255,255,255,0.04); }
+        table { width: 100%; min-width: 1120px; border-collapse: separate; border-spacing: 0; text-align: left; table-layout: fixed; }
+        th { background: rgba(0,0,0,0.62); padding: 14px 12px; color: var(--accent); position: sticky; top: 0; z-index: 2; font-size: 13px; text-transform: uppercase; letter-spacing: .45px; backdrop-filter: blur(10px); }
+        td { padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; }
+        tbody tr { transition: 0.18s ease; }
+        tbody tr:hover td { background: rgba(0,245,212,0.055); }
+        .col-check { width: 50px; text-align: center; }
+        .col-index { width: 64px; color: var(--text-muted); font-weight: 800; text-align: center; }
+        .col-kanji { width: 150px; }
+        .col-amhan { width: 150px; }
+        .col-hira { width: 170px; }
+        .col-meaning { width: 250px; }
+        .col-note { width: 290px; }
+        .col-action { width: 100px; text-align: center; position: sticky; right: 0; background: rgba(4,10,24,0.94); z-index: 1; }
+        th.col-action { z-index: 3; background: rgba(0,0,0,0.75); }
+        .kanji-cell { font-size: 22px; font-weight: 900; color: var(--kanji-color); line-height: 1.35; word-break: break-word; }
+        .hira-cell { font-size: 18px; color: #fff; word-break: break-word; }
+        .meaning-cell { color: var(--accent); line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+        .note-cell { color: #d8e2ff; line-height: 1.55; white-space: pre-wrap; word-break: break-word; max-height: 92px; overflow: auto; padding-right: 6px; }
+        .note-empty { color: rgba(255,255,255,0.32); font-style: italic; }
+        .btn-delete { background: rgba(239, 35, 60, 0.2); color: var(--danger); border: 1px solid var(--danger); padding: 7px 12px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s;}
         .btn-delete:hover { background: var(--danger); color: white; }
 
         /* Custom Scrollbar for Table */
@@ -195,17 +233,20 @@
         .vault-title-block { display: flex; flex-direction: column; gap: 6px; }
         .vault-stats { color: var(--text-muted); font-size: 13px; }
         .vault-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; align-items: center; }
-        .vault-tools { display: flex; gap: 10px; margin-bottom: 14px; align-items: center; }
-        .vault-search {
-            flex: 1;
-            padding: 11px 13px;
+        .vault-tools { display: grid; grid-template-columns: minmax(220px, 1fr) 170px auto auto auto; gap: 10px; margin-bottom: 14px; align-items: center; }
+        .vault-search, .vault-select {
+            padding: 12px 13px;
             background: rgba(0,0,0,0.35);
             border: 1px solid var(--glass-border);
             color: white;
-            border-radius: 10px;
+            border-radius: 12px;
             outline: none;
+            min-width: 0;
         }
-        .vault-search:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,245,212,0.12); }
+        .vault-select option { color: #111; }
+        .vault-search:focus, .vault-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,245,212,0.12); }
+        .filter-chip { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 13px; border-radius: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); color: #fff; font-size: 13px; font-weight: 800; cursor: pointer; user-select: none; white-space: nowrap; }
+        .filter-chip input { width: 16px; height: 16px; accent-color: var(--accent); }
         .btn-small, .btn-import, .btn-delete-selected, .btn-delete-all {
             border: none;
             padding: 10px 14px;
@@ -245,9 +286,11 @@
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         @media (max-width: 900px) {
             header { flex-direction: column; gap: 12px; }
-            #vault-view { height: 86%; padding: 18px; }
+            #vault-view { height: 88vh; padding: 16px; width: 96vw; }
             .vault-header { align-items: flex-start; flex-direction: column; gap: 12px; }
-            .vault-actions, .vault-tools { width: 100%; justify-content: flex-start; }
+            .vault-actions { width: 100%; justify-content: flex-start; }
+            .vault-tools { width: 100%; grid-template-columns: 1fr; }
+            .vault-dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .kanji { font-size: 110px; }
         }
 
@@ -316,6 +359,10 @@
                     <label>Nghĩa</label>
                     <input type="text" id="input-nghia" required autocomplete="off">
                 </div>
+                <div class="form-group">
+                    <label>Ghi chú (Có thể trống)</label>
+                    <textarea id="input-ghichu" placeholder="Ví dụ: cách dùng, ví dụ câu, lưu ý dễ nhầm..." autocomplete="off"></textarea>
+                </div>
                 <button type="submit" class="btn-submit">+ Ghi Nhớ / Cập Nhật</button>
             </form>
         </div>
@@ -323,7 +370,10 @@
         <div id="vault-view">
             <div class="vault-header">
                 <div class="vault-title-block">
-                    <h2 style="color: #fff;">Quản Lý Từ Vựng</h2>
+                    <div class="vault-heading">
+                        <h2 style="color: #fff;">Quản Lý Từ Vựng</h2>
+                        <span class="vault-badge">PRO VAULT</span>
+                    </div>
                     <div id="vault-stats" class="vault-stats">Đang tải kho lưu trữ...</div>
                 </div>
                 <div class="vault-actions">
@@ -337,21 +387,37 @@
                     <button class="btn-delete-all" onclick="deleteAllWords()">Xóa hết</button>
                 </div>
             </div>
+            <div class="vault-dashboard">
+                <div class="stat-card"><div class="stat-label">Tổng từ</div><div id="stat-total" class="stat-value">0</div></div>
+                <div class="stat-card"><div class="stat-label">Đang hiển thị</div><div id="stat-visible" class="stat-value">0</div></div>
+                <div class="stat-card"><div class="stat-label">Đã chọn</div><div id="stat-selected" class="stat-value">0</div></div>
+                <div class="stat-card"><div class="stat-label">Có ghi chú</div><div id="stat-notes" class="stat-value">0</div></div>
+            </div>
             <div class="vault-tools">
-                <input id="vault-search" class="vault-search" type="text" placeholder="Tìm nhanh theo Kanji, Âm Hán, Hiragana, Nghĩa..." oninput="renderTable()">
+                <input id="vault-search" class="vault-search" type="text" placeholder="Tìm theo Kanji, Âm Hán, Hiragana, Nghĩa, Ghi chú..." oninput="renderTable()">
+                <select id="vault-sort" class="vault-select" onchange="renderTable(); saveAppState();">
+                    <option value="newest">Mới thêm trước</option>
+                    <option value="kanji">Sắp xếp Kanji</option>
+                    <option value="hiragana">Sắp xếp Hiragana</option>
+                    <option value="amhan">Sắp xếp Âm Hán</option>
+                    <option value="nghia">Sắp xếp Nghĩa</option>
+                </select>
+                <label class="filter-chip"><input id="filter-has-note" type="checkbox" onchange="renderTable(); saveAppState();"> Chỉ có ghi chú</label>
                 <button class="btn-small" onclick="selectFilteredWords(true)">Chọn kết quả lọc</button>
                 <button class="btn-small" onclick="selectFilteredWords(false)">Bỏ chọn lọc</button>
             </div>
             <div class="table-container">
-                <table>
+                <table class="vocab-table">
                     <thead>
                         <tr>
-                            <th style="width: 44px; text-align: center;"><input id="check-all-visible" class="row-check" type="checkbox" onchange="toggleSelectAllVisible(this.checked)"></th>
-                            <th>Kanji</th>
-                            <th>Âm Hán</th>
-                            <th>Hiragana</th>
-                            <th>Nghĩa</th>
-                            <th style="width: 100px; text-align: center;">Hành động</th>
+                            <th class="col-check"><input id="check-all-visible" class="row-check" type="checkbox" onchange="toggleSelectAllVisible(this.checked)"></th>
+                            <th class="col-index">STT</th>
+                            <th class="col-kanji">Kanji</th>
+                            <th class="col-amhan">Âm Hán</th>
+                            <th class="col-hira">Hiragana</th>
+                            <th class="col-meaning">Nghĩa</th>
+                            <th class="col-note">Ghi chú</th>
+                            <th class="col-action">Hành động</th>
                         </tr>
                     </thead>
                     <tbody id="table-body">
@@ -388,12 +454,16 @@
         createSakura();
 
         // --- HỆ THỐNG LƯU TRỮ TỪ VỰNG ---
-        const STORAGE_KEY = "nihongoProVocabularyList_v2";
+        const STORAGE_KEY = "nihongoProVocabularyList_v3";
+        const OLD_STORAGE_KEYS = ["nihongoProVocabularyList_v2", "nihongoProVocabularyList"];
+        const APP_STATE_KEY = "nihongoProAppState_v1";
+        let lastSavedSnapshot = "";
+        let activeTab = "slide";
 
         const defaultVocabularyList = [
-            { vocab: "聴解", amhan: "Thính Giải", hiragana: "ちょうかい", nghia: "Nghe hiểu" },
-            { vocab: "努力", amhan: "Nỗ Lực", hiragana: "どりょく", nghia: "Cố gắng, Chăm chỉ" },
-            { vocab: "開発", amhan: "Khai Phát", hiragana: "かいはつ", nghia: "Phát triển" }
+            { vocab: "聴解", amhan: "Thính Giải", hiragana: "ちょうかい", nghia: "Nghe hiểu", ghichu: "" },
+            { vocab: "努力", amhan: "Nỗ Lực", hiragana: "どりょく", nghia: "Cố gắng, Chăm chỉ", ghichu: "" },
+            { vocab: "開発", amhan: "Khai Phát", hiragana: "かいはつ", nghia: "Phát triển", ghichu: "" }
         ];
 
         let vocabularyList = loadVocabularyList();
@@ -413,7 +483,8 @@
                 vocab: get("vocab", "kanji", "Kanji", "Từ vựng", "Từ Vựng", "Hán tự", "漢字"),
                 amhan: get("amhan", "amHan", "Âm Hán", "Am Han", "âm hán", "Âm Hán Việt", "hanviet"),
                 hiragana: get("hiragana", "Hiragana", "hirgana", "Hirgana", "kana", "reading", "Cách đọc", "Đọc", "読み方"),
-                nghia: get("nghia", "Nghĩa", "nghĩa", "meaning", "Ý nghĩa", "Vietnamese", "Tiếng Việt")
+                nghia: get("nghia", "Nghĩa", "nghĩa", "meaning", "Ý nghĩa", "Vietnamese", "Tiếng Việt"),
+                ghichu: get("ghichu", "ghiChu", "ghi_chu", "Ghi chú", "Ghi Chú", "Ghi chu", "Ghi Chu", "note", "notes", "Note", "Notes", "Lưu ý", "Luu y", "Ghi chú/Lời giải")
             };
         }
 
@@ -431,7 +502,7 @@
 
         function exactWordKey(word) {
             const w = normalizeWord(word);
-            return [w.vocab, w.amhan, w.hiragana, w.nghia].map(compactForKey).join("||");
+            return [w.vocab, w.amhan, w.hiragana, w.nghia, w.ghichu].map(compactForKey).join("||");
         }
 
         function mainWordKey(word) {
@@ -447,14 +518,35 @@
             return `V:${vocab}`;
         }
 
-        function mergeWord(oldWord, newWord) {
+        function mergeWord(oldWord, newWord, options = {}) {
             const oldClean = normalizeWord(oldWord);
             const newClean = normalizeWord(newWord);
+            const allowEmpty = !!options.allowEmpty;
+
+            // Khi cập nhật thủ công, cho phép người dùng cố tình xóa rỗng Âm Hán/Ghi chú.
+            // Khi dedupe/import, mặc định vẫn giữ dữ liệu cũ nếu dữ liệu mới bị thiếu.
+            const pick = (newValue, oldValue) => {
+                if (allowEmpty) return newValue;
+                return String(newValue || "").trim() ? newValue : oldValue;
+            };
+
+            const mergeNote = (newValue, oldValue) => {
+                if (allowEmpty) return newValue;
+                const newText = String(newValue || "").trim();
+                const oldText = String(oldValue || "").trim();
+                if (!newText) return oldValue;
+                if (!oldText) return newValue;
+                if (compactForKey(newText) === compactForKey(oldText)) return oldValue;
+                return `${oldText}
+${newText}`;
+            };
+
             return {
-                vocab: newClean.vocab || oldClean.vocab,
-                amhan: newClean.amhan || oldClean.amhan,
-                hiragana: newClean.hiragana || oldClean.hiragana,
-                nghia: newClean.nghia || oldClean.nghia
+                vocab: pick(newClean.vocab, oldClean.vocab),
+                amhan: pick(newClean.amhan, oldClean.amhan),
+                hiragana: pick(newClean.hiragana, oldClean.hiragana),
+                nghia: pick(newClean.nghia, oldClean.nghia),
+                ghichu: mergeNote(newClean.ghichu, oldClean.ghichu)
             };
         }
 
@@ -495,33 +587,92 @@
 
         function loadVocabularyList() {
             try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) return defaultVocabularyList.map(w => ({ ...w }));
+                let raw = localStorage.getItem(STORAGE_KEY);
+
+                // Nếu bản mới chưa có dữ liệu, tự chuyển dữ liệu từ key cũ sang key mới.
+                if (!raw) {
+                    for (const oldKey of OLD_STORAGE_KEYS) {
+                        const oldRaw = localStorage.getItem(oldKey);
+                        if (oldRaw) {
+                            raw = oldRaw;
+                            break;
+                        }
+                    }
+                }
+
+                // Chỉ nạp dữ liệu mặc định khi trình duyệt CHƯA TỪNG có kho lưu trữ.
+                // Nếu localStorage đang lưu [] thì phải tôn trọng kho rỗng của người dùng.
+                if (raw === null || raw === undefined || raw === "") {
+                    return defaultVocabularyList.map(w => ({ ...w }));
+                }
 
                 const parsed = JSON.parse(raw);
                 if (!Array.isArray(parsed)) return defaultVocabularyList.map(w => ({ ...w }));
 
-                let cleaned = parsed.map(normalizeWord).filter(w => w.vocab);
-                if (!cleaned.length) cleaned = defaultVocabularyList.map(w => ({ ...w }));
-                vocabularyList = cleaned;
-                dedupeVocabularyList();
-                return vocabularyList;
+                // Quan trọng: không tự nạp lại defaultVocabularyList khi cleaned.length === 0.
+                // Người dùng có thể đã bấm "Xóa hết", nên mảng rỗng là trạng thái hợp lệ.
+                const cleaned = parsed.map(normalizeWord).filter(w => w.vocab);
+
+                // Không được gọi dedupeVocabularyList() ở đây vì lúc này biến vocabularyList
+                // vẫn đang trong quá trình khởi tạo. Gọi sớm sẽ làm trình duyệt bắt lỗi
+                // rồi quay về dữ liệu mặc định sau mỗi lần reload.
+                return cleaned;
             } catch (error) {
                 console.warn("Không đọc được kho lưu trữ:", error);
                 return defaultVocabularyList.map(w => ({ ...w }));
             }
         }
 
-        function saveVocabularyList() {
+        function saveVocabularyList(options = {}) {
             try {
                 dedupeVocabularyList();
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(vocabularyList));
+                const snapshot = JSON.stringify(vocabularyList);
+                localStorage.setItem(STORAGE_KEY, snapshot);
+
+                // Xóa key cũ để reload không bị kéo lại dữ liệu phiên bản trước.
+                OLD_STORAGE_KEYS.forEach(key => {
+                    if (key !== STORAGE_KEY) localStorage.removeItem(key);
+                });
+
+                lastSavedSnapshot = snapshot;
                 updateVaultStats();
+
+                // QUAN TRỌNG: Khi trang vừa load, chỉ được lưu kho từ vựng,
+                // không được ghi đè trạng thái autosave giao diện cũ.
+                if (!options.skipStateSave) saveAppState();
             } catch (error) {
                 alert("Trình duyệt không cho lưu dữ liệu. Cậu hãy xuất file Excel để sao lưu nhé!");
                 console.error(error);
             }
         }
+
+        function reloadVocabularyFromStorage() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw || raw === lastSavedSnapshot) return;
+
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) return;
+
+                vocabularyList = parsed.map(normalizeWord).filter(w => w.vocab);
+                dedupeVocabularyList();
+                lastSavedSnapshot = JSON.stringify(vocabularyList);
+                syncSelectedIndexes();
+                if (currentIndex >= vocabularyList.length) currentIndex = Math.max(0, vocabularyList.length - 1);
+                renderTable();
+                renderWord();
+            } catch (error) {
+                console.warn("Không đồng bộ được dữ liệu mới:", error);
+            }
+        }
+
+        window.addEventListener("storage", (event) => {
+            if (event.key === STORAGE_KEY) reloadVocabularyFromStorage();
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden) reloadVocabularyFromStorage();
+        });
 
         function escapeHTML(value) {
             return String(value ?? "")
@@ -546,6 +697,122 @@
             window.__toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
         }
 
+
+        // --- AUTOSAVE TRẠNG THÁI GIAO DIỆN ---
+        function safeGetValue(id) {
+            const el = document.getElementById(id);
+            return el ? el.value : "";
+        }
+
+        function safeSetValue(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.value = value || "";
+        }
+
+        function clampNumber(value, min, max) {
+            const num = Number(value);
+            if (!Number.isFinite(num)) return min;
+            return Math.max(min, Math.min(max, Math.floor(num)));
+        }
+
+        function loadAppState() {
+            try {
+                const raw = localStorage.getItem(APP_STATE_KEY);
+                if (!raw) return {};
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === "object" ? parsed : {};
+            } catch (error) {
+                console.warn("Không đọc được trạng thái autosave:", error);
+                return {};
+            }
+        }
+
+        function saveAppState() {
+            try {
+                const state = {
+                    activeTab,
+                    currentIndex,
+                    stepCounter,
+                    formDraft: {
+                        vocab: safeGetValue("input-vocab"),
+                        amhan: safeGetValue("input-amhan"),
+                        hiragana: safeGetValue("input-hiragana"),
+                        nghia: safeGetValue("input-nghia"),
+                        ghichu: safeGetValue("input-ghichu")
+                    },
+                    vaultSearch: safeGetValue("vault-search"),
+                    vaultSort: safeGetValue("vault-sort") || "newest",
+                    filterHasNote: !!(document.getElementById("filter-has-note") && document.getElementById("filter-has-note").checked),
+                    selectedIndexes: [...selectedIndexes],
+                    updatedAt: new Date().toISOString()
+                };
+                localStorage.setItem(APP_STATE_KEY, JSON.stringify(state));
+            } catch (error) {
+                console.warn("Không lưu được trạng thái autosave:", error);
+            }
+        }
+
+        function applyRevealStep(savedStep) {
+            if (vocabularyList.length === 0) return;
+
+            const wrapper = document.getElementById("slide-wrapper");
+            hideRevealInfo();
+            if (wrapper) wrapper.classList.remove("slide-up");
+
+            const currentWord = vocabularyList[currentIndex] || vocabularyList[0];
+            const revealIds = getRevealIds(currentWord);
+            stepCounter = clampNumber(savedStep, 0, revealIds.length);
+
+            if (stepCounter > 0 && wrapper) wrapper.classList.add("slide-up");
+            for (let i = 0; i < stepCounter; i++) {
+                const el = document.getElementById(revealIds[i]);
+                if (el) el.classList.add("visible");
+            }
+        }
+
+        function restoreAppState() {
+            const state = loadAppState();
+
+            if (vocabularyList.length > 0) {
+                currentIndex = clampNumber(state.currentIndex, 0, vocabularyList.length - 1);
+            } else {
+                currentIndex = 0;
+            }
+
+            safeSetValue("input-vocab", state.formDraft && state.formDraft.vocab);
+            safeSetValue("input-amhan", state.formDraft && state.formDraft.amhan);
+            safeSetValue("input-hiragana", state.formDraft && state.formDraft.hiragana);
+            safeSetValue("input-nghia", state.formDraft && state.formDraft.nghia);
+            safeSetValue("input-ghichu", state.formDraft && state.formDraft.ghichu);
+            safeSetValue("vault-search", state.vaultSearch);
+            safeSetValue("vault-sort", state.vaultSort || "newest");
+            const noteFilter = document.getElementById("filter-has-note");
+            if (noteFilter) noteFilter.checked = !!state.filterHasNote;
+
+            selectedIndexes = new Set(Array.isArray(state.selectedIndexes) ? state.selectedIndexes : []);
+            syncSelectedIndexes();
+
+            const savedTab = ["slide", "form", "vault"].includes(state.activeTab) ? state.activeTab : "slide";
+            switchTab(savedTab, { skipSave: true });
+            applyRevealStep(state.stepCounter || 0);
+            saveAppState();
+        }
+
+        function setupAutosaveListeners() {
+            ["input-vocab", "input-amhan", "input-hiragana", "input-nghia", "input-ghichu", "vault-search", "vault-sort"].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener("input", () => {
+                    saveAppState();
+                    if (id === "vault-search") renderTable();
+                });
+            });
+
+            // Không lưu ở beforeunload nữa.
+            // Autosave realtime theo input đã đủ; beforeunload có thể đọc form đang bị trình duyệt dọn rỗng
+            // rồi ghi đè draft cũ bằng chuỗi rỗng khi reload.
+        }
+
         function duplicateIndexOf(word) {
             const cleaned = normalizeWord(word);
             const exactKey = exactWordKey(cleaned);
@@ -560,14 +827,14 @@
             return -1;
         }
 
-        function upsertWord(word) {
+        function upsertWord(word, options = {}) {
             const cleaned = normalizeWord(word);
             if (!cleaned.vocab) return "skipped";
 
             const index = duplicateIndexOf(cleaned);
             if (index >= 0) {
                 const before = exactWordKey(vocabularyList[index]);
-                vocabularyList[index] = mergeWord(vocabularyList[index], cleaned);
+                vocabularyList[index] = mergeWord(vocabularyList[index], cleaned, options);
                 const after = exactWordKey(vocabularyList[index]);
                 return before === after ? "duplicate" : "updated";
             }
@@ -578,10 +845,21 @@
 
         function updateVaultStats() {
             const stats = document.getElementById("vault-stats");
-            if (!stats) return;
-
             const visibleCount = getFilteredIndexes().length;
-            stats.textContent = `Tổng: ${vocabularyList.length} từ · Đang hiển thị: ${visibleCount} · Đã chọn: ${selectedIndexes.size} · Lọc trùng: nghiêm ngặt · Tự lưu: bật`;
+            const notesCount = vocabularyList.filter(word => String(word.ghichu || "").trim()).length;
+
+            if (stats) {
+                stats.textContent = `Tổng: ${vocabularyList.length} từ · Đang hiển thị: ${visibleCount} · Đã chọn: ${selectedIndexes.size} · Có ghi chú: ${notesCount} · Tự lưu: bật`;
+            }
+
+            const setStat = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+            setStat("stat-total", vocabularyList.length);
+            setStat("stat-visible", visibleCount);
+            setStat("stat-selected", selectedIndexes.size);
+            setStat("stat-notes", notesCount);
         }
 
         // --- HỌC TRÌNH CHIẾU ---
@@ -642,11 +920,13 @@
                 wrapper.classList.add('slide-up');
                 document.getElementById(revealIds[stepCounter]).classList.add('visible');
                 stepCounter++;
+                saveAppState();
                 return;
             }
 
             currentIndex = (currentIndex + 1) % vocabularyList.length;
             renderWord();
+            saveAppState();
         }
 
         // --- THÊM / CẬP NHẬT TỪ ---
@@ -657,10 +937,11 @@
                 vocab: document.getElementById('input-vocab').value,
                 amhan: document.getElementById('input-amhan').value,
                 hiragana: document.getElementById('input-hiragana').value,
-                nghia: document.getElementById('input-nghia').value
+                nghia: document.getElementById('input-nghia').value,
+                ghichu: document.getElementById('input-ghichu').value
             };
 
-            const result = upsertWord(newVocab);
+            const result = upsertWord(newVocab, { allowEmpty: true });
             saveVocabularyList();
 
             const cleaned = normalizeWord(newVocab);
@@ -681,21 +962,45 @@
         // --- KHO LƯU TRỮ ---
         function getSearchQuery() {
             const input = document.getElementById("vault-search");
-            return input ? input.value.trim().toLowerCase() : "";
+            return input ? input.value.trim() : "";
+        }
+
+        function getSortMode() {
+            const sort = document.getElementById("vault-sort");
+            return sort ? sort.value : "newest";
+        }
+
+        function isOnlyNotesMode() {
+            const checkbox = document.getElementById("filter-has-note");
+            return !!(checkbox && checkbox.checked);
         }
 
         function wordMatchesQuery(word, query) {
-            if (!query) return true;
-            return [word.vocab, word.amhan, word.hiragana, word.nghia]
-                .some(value => String(value || "").toLowerCase().includes(query));
+            const normalizedQuery = normalizeForKey(query);
+            if (!normalizedQuery) return true;
+            return [word.vocab, word.amhan, word.hiragana, word.nghia, word.ghichu]
+                .some(value => normalizeForKey(value).includes(normalizedQuery));
         }
 
         function getFilteredIndexes() {
             const query = getSearchQuery();
-            return vocabularyList
+            const onlyNotes = isOnlyNotesMode();
+            const sortMode = getSortMode();
+
+            const items = vocabularyList
                 .map((word, index) => ({ word, index }))
                 .filter(item => wordMatchesQuery(item.word, query))
-                .map(item => item.index);
+                .filter(item => !onlyNotes || String(item.word.ghichu || "").trim());
+
+            if (sortMode === "newest") {
+                items.sort((a, b) => b.index - a.index);
+            } else {
+                const fieldMap = { kanji: "vocab", hiragana: "hiragana", amhan: "amhan", nghia: "nghia" };
+                const field = fieldMap[sortMode] || "vocab";
+                items.sort((a, b) => normalizeForKey(a.word[field]).localeCompare(normalizeForKey(b.word[field]), "vi"));
+            }
+
+            return items.map(item => item.index);
         }
 
         function syncSelectedIndexes() {
@@ -710,29 +1015,34 @@
             tbody.innerHTML = '';
 
             if (vocabularyList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888;">Kho từ vựng đang trống</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#888; padding: 34px;">Kho từ vựng đang trống</td></tr>`;
                 updateVaultStats();
                 return;
             }
 
             if (visibleIndexes.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888;">Không tìm thấy từ phù hợp</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#888; padding: 34px;">Không tìm thấy từ phù hợp</td></tr>`;
                 updateVaultStats();
                 return;
             }
 
-            visibleIndexes.forEach(index => {
-                const word = vocabularyList[index];
+            visibleIndexes.forEach((index, visibleOrder) => {
+                const word = normalizeWord(vocabularyList[index]);
+                const noteHTML = word.ghichu
+                    ? `<div class="note-cell">${escapeHTML(word.ghichu)}</div>`
+                    : `<span class="note-empty">Chưa có ghi chú</span>`;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="text-align:center;">
+                    <td class="col-check">
                         <input class="row-check" type="checkbox" ${selectedIndexes.has(index) ? "checked" : ""} onchange="toggleSelectWord(${index}, this.checked)">
                     </td>
-                    <td style="font-size: 20px; font-weight: bold; color: var(--kanji-color);">${escapeHTML(word.vocab)}</td>
-                    <td>${escapeHTML(word.amhan)}</td>
-                    <td style="font-size: 18px;">${escapeHTML(word.hiragana)}</td>
-                    <td style="color: var(--accent);">${escapeHTML(word.nghia)}</td>
-                    <td style="text-align: center;">
+                    <td class="col-index">${visibleOrder + 1}</td>
+                    <td class="col-kanji"><div class="kanji-cell">${escapeHTML(word.vocab)}</div></td>
+                    <td class="col-amhan">${escapeHTML(word.amhan)}</td>
+                    <td class="col-hira"><div class="hira-cell">${escapeHTML(word.hiragana)}</div></td>
+                    <td class="col-meaning"><div class="meaning-cell">${escapeHTML(word.nghia)}</div></td>
+                    <td class="col-note">${noteHTML}</td>
+                    <td class="col-action">
                         <button class="btn-delete" onclick="deleteWord(${index})">Xóa</button>
                     </td>
                 `;
@@ -752,6 +1062,7 @@
             if (checked) selectedIndexes.add(index);
             else selectedIndexes.delete(index);
             renderTable();
+            saveAppState();
         }
 
         function toggleSelectAllVisible(checked) {
@@ -760,6 +1071,7 @@
                 else selectedIndexes.delete(index);
             });
             renderTable();
+            saveAppState();
         }
 
         function selectFilteredWords(checked) {
@@ -879,6 +1191,7 @@
             if (["amhan", "amhanviet", "hanviet", "onhan", "onyomi"].includes(h) || h.includes("amhan") || h.includes("hanviet")) return "amhan";
             if (["hiragana", "hirgana", "kana", "cachd", "cachdoc", "doc", "yomikata", "reading", "furigana", "読み方"].includes(h) || h.includes("hiragana") || h.includes("hirgana")) return "hiragana";
             if (["nghia", "ynghia", "meaning", "mean", "vietnamese", "tiengviet", "dich", "translation"].includes(h) || h.includes("nghia") || h.includes("meaning")) return "nghia";
+            if (["ghichu", "note", "notes", "luuy", "memo", "remark", "remarks", "comment", "comments"].includes(h) || h.includes("ghichu") || h.includes("note") || h.includes("luuy") || h.includes("memo")) return "ghichu";
             return "";
         }
 
@@ -907,7 +1220,7 @@
         }
 
         function buildMapFromHeader(row, rowIndex) {
-            const map = { headerIndex: rowIndex, kanji: -1, amhan: -1, hiragana: -1, nghia: -1, score: 0 };
+            const map = { headerIndex: rowIndex, kanji: -1, amhan: -1, hiragana: -1, nghia: -1, ghichu: -1, score: 0 };
             row.forEach((cell, colIndex) => {
                 const type = columnTypeFromHeader(cell);
                 if (!type) return;
@@ -930,16 +1243,15 @@
 
             if (candidates.length) return candidates[0];
 
-            // Fallback cho file bảng đáp án mẫu: E/F/G/H = Kanji/Âm Hán/Hiragana/Nghĩa.
-            // Không lấy cột ghi chú nữa.
+            // Fallback cho file bảng đáp án mẫu: E/F/G/H/I = Kanji/Âm Hán/Hiragana/Nghĩa/Ghi chú.
             if (rows.length > 3 && rows.some(row => isLikelyKanjiText(row[4])) && rows.some(row => isLikelyHiraganaText(row[6]))) {
-                return { headerIndex: 2, kanji: 4, amhan: 5, hiragana: 6, nghia: 7, score: 10 };
+                return { headerIndex: 2, kanji: 4, amhan: 5, hiragana: 6, nghia: 7, ghichu: 8, score: 10 };
             }
 
             // Fallback tự đoán cột nếu file không có hàng tiêu đề rõ ràng.
             const maxCols = Math.max(...rows.map(row => row.length));
             const contentRows = rows.filter(row => row.some(cell => String(cell || "").trim()));
-            const guessed = { headerIndex: -1, kanji: -1, amhan: -1, hiragana: -1, nghia: -1, score: 0 };
+            const guessed = { headerIndex: -1, kanji: -1, amhan: -1, hiragana: -1, nghia: -1, ghichu: -1, score: 0 };
             const colScores = [];
             for (let c = 0; c < maxCols; c++) {
                 colScores.push({
@@ -947,7 +1259,8 @@
                     kanji: scoreColumnByContent(contentRows, c, "kanji"),
                     hiragana: scoreColumnByContent(contentRows, c, "hiragana"),
                     amhan: scoreColumnByContent(contentRows, c, "amhan"),
-                    nghia: scoreColumnByContent(contentRows, c, "nghia")
+                    nghia: scoreColumnByContent(contentRows, c, "nghia"),
+                    ghichu: scoreColumnByContent(contentRows, c, "ghichu")
                 });
             }
 
@@ -967,13 +1280,14 @@
             pick("hiragana");
             pick("amhan");
             pick("nghia");
+            pick("ghichu");
 
             return guessed.kanji >= 0 && countCoreColumns(guessed) >= 3 ? guessed : null;
         }
 
         function isHeaderLikeWord(word) {
             const v = cleanHeader(word.vocab);
-            return ["kanji", "hantu", "tuvung", "vocab", "vocabulary", "word", "loigiai"].includes(v);
+            return ["kanji", "hantu", "tuvung", "vocab", "vocabulary", "word", "loigiai", "ghichu", "note"].includes(v);
         }
 
         function extractVocabFromRows(rows) {
@@ -990,7 +1304,8 @@
                     vocab: map.kanji >= 0 ? row[map.kanji] : "",
                     amhan: map.amhan >= 0 ? row[map.amhan] : "",
                     hiragana: map.hiragana >= 0 ? row[map.hiragana] : "",
-                    nghia: map.nghia >= 0 ? row[map.nghia] : ""
+                    nghia: map.nghia >= 0 ? row[map.nghia] : "",
+                    ghichu: map.ghichu >= 0 ? row[map.ghichu] : ""
                 });
 
                 if (!word.vocab || isHeaderLikeWord(word)) continue;
@@ -1019,7 +1334,7 @@
             });
 
             if (cleaned.length === 0) {
-                alert("Không tìm thấy dữ liệu từ vựng. File cần có ít nhất 3 cột chính trong nhóm: Kanji / Âm Hán / Hiragana / Nghĩa. Cột ghi chú sẽ bị bỏ qua.");
+                alert("Không tìm thấy dữ liệu từ vựng. File cần có ít nhất 3 cột chính trong nhóm: Kanji / Âm Hán / Hiragana / Nghĩa. Nếu có cột Ghi chú thì hệ thống sẽ tự nhận thêm.");
                 return;
             }
 
@@ -1102,8 +1417,8 @@
             }
 
             const data = [
-                ["Kanji", "Âm Hán", "Hiragana", "Nghĩa"],
-                ...vocabularyList.map(row => [row.vocab, row.amhan, row.hiragana, row.nghia])
+                ["Kanji", "Âm Hán", "Hiragana", "Nghĩa", "Ghi chú"],
+                ...vocabularyList.map(row => [row.vocab, row.amhan, row.hiragana, row.nghia, row.ghichu || ""])
             ];
 
             if (window.XLSX) {
@@ -1112,7 +1427,8 @@
                     { wch: 18 },
                     { wch: 18 },
                     { wch: 18 },
-                    { wch: 38 }
+                    { wch: 38 },
+                    { wch: 48 }
                 ];
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, "Kho_Tu_Vung");
@@ -1136,7 +1452,10 @@
         }
 
         // --- CHUYỂN TAB ---
-        function switchTab(tabId) {
+        function switchTab(tabId, options = {}) {
+            activeTab = ["slide", "form", "vault"].includes(tabId) ? tabId : "slide";
+            document.body.classList.toggle("vault-page-mode", activeTab === "vault");
+
             document.getElementById('slide-view').style.display = 'none';
             document.getElementById('form-view').style.display = 'none';
             document.getElementById('vault-view').style.display = 'none';
@@ -1145,18 +1464,20 @@
             document.getElementById('btn-form').classList.remove('active');
             document.getElementById('btn-vault').classList.remove('active');
 
-            if (tabId === 'slide') {
+            if (activeTab === 'slide') {
                 document.getElementById('slide-view').style.display = 'flex';
                 document.getElementById('btn-slide').classList.add('active');
                 renderWord();
-            } else if (tabId === 'form') {
+            } else if (activeTab === 'form') {
                 document.getElementById('form-view').style.display = 'block';
                 document.getElementById('btn-form').classList.add('active');
-            } else if (tabId === 'vault') {
+            } else if (activeTab === 'vault') {
                 document.getElementById('vault-view').style.display = 'flex';
                 document.getElementById('btn-vault').classList.add('active');
                 renderTable();
             }
+
+            if (!options.skipSave) saveAppState();
         }
 
         // Bắt sự kiện phím
@@ -1174,9 +1495,16 @@
 
         // Khởi chạy
         dedupeVocabularyList();
-        renderWord();
+        lastSavedSnapshot = JSON.stringify(vocabularyList);
+        setupAutosaveListeners();
+
+        // Phải khôi phục trạng thái trước. Nếu saveVocabularyList() chạy trước,
+        // nó sẽ ghi đè autosave cũ thành tab slide / index 0 / form rỗng mỗi lần reload.
+        restoreAppState();
+
+        // Chỉ lưu lại kho từ vựng đã dedupe/migrate, không đụng vào trạng thái giao diện vừa khôi phục.
+        saveVocabularyList({ skipStateSave: true });
         renderTable();
-        saveVocabularyList();
     </script>
 </body>
 </html>
