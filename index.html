@@ -893,7 +893,7 @@
             <div class="slide-mode-controls" onclick="event.stopPropagation()">
                 <button id="mode-all" class="slide-mode-btn active" onclick="setSlideStudyMode('all')">Tất cả</button>
                 <button id="mode-vocab" class="slide-mode-btn" onclick="setSlideStudyMode('vocab')">Từ vựng</button>
-                <button id="mode-grammar" class="slide-mode-btn" onclick="setSlideStudyMode('grammar')">Ngữ pháp / Ghi chú</button>
+                <button id="mode-grammar" class="slide-mode-btn" onclick="setSlideStudyMode('grammar')">Ngữ pháp</button>
             </div>
             <div id="slide-wrapper" class="slide-study-wrapper">
                 <div class="slide-main-panel">
@@ -930,7 +930,7 @@
                     <label>Loại dữ liệu</label>
                     <select id="input-type" class="vault-select" style="width:100%;">
                         <option value="vocab">Từ vựng</option>
-                        <option value="grammar">Ngữ pháp / Ghi chú riêng</option>
+                        <option value="grammar">Ngữ pháp</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -981,7 +981,7 @@
                 <div class="stat-card"><div class="stat-label">Tổng từ</div><div id="stat-total" class="stat-value">0</div></div>
                 <div class="stat-card"><div class="stat-label">Đang hiển thị</div><div id="stat-visible" class="stat-value">0</div></div>
                 <div class="stat-card"><div class="stat-label">Đã chọn</div><div id="stat-selected" class="stat-value">0</div></div>
-                <div class="stat-card"><div class="stat-label">Ngữ pháp/Ghi chú</div><div id="stat-notes" class="stat-value">0</div></div>
+                <div class="stat-card"><div class="stat-label">Ngữ pháp</div><div id="stat-notes" class="stat-value">0</div></div>
             </div>
             <div class="vault-tools">
                 <input id="vault-search" class="vault-search" type="text" placeholder="Tìm theo từ vựng, mẫu ngữ pháp, kết hợp, nghĩa, ghi chú..." oninput="renderTable()">
@@ -992,7 +992,7 @@
                     <option value="amhan">Sắp xếp Âm Hán</option>
                     <option value="nghia">Sắp xếp Nghĩa</option>
                 </select>
-                <label class="filter-chip"><input id="filter-has-note" type="checkbox" onchange="renderTable(); saveAppState();"> Chỉ ngữ pháp/ghi chú</label>
+                <label class="filter-chip"><input id="filter-has-note" type="checkbox" onchange="renderTable(); saveAppState();"> Chỉ ngữ pháp</label>
                 <button class="btn-small" onclick="selectFilteredWords(true)">Chọn kết quả lọc</button>
                 <button class="btn-small" onclick="selectFilteredWords(false)">Bỏ chọn lọc</button>
             </div>
@@ -1062,6 +1062,15 @@
         let currentIndex = 0;
         let stepCounter = 0;
 
+        function normalizeDataType(value, fallback = "vocab") {
+            const raw = normalizeForKey(value);
+            const compact = cleanHeader(value);
+            if (!raw && !compact) return fallback;
+            if (["nguphap", "grammar", "maunguphap", "maunp", "cautruc", "pattern"].includes(compact) || /ngữ\s*pháp|ngu\s*phap|grammar|mẫu\s*np|mau\s*np|cấu\s*trúc|cau\s*truc/.test(raw)) return "grammar";
+            if (["tuvung", "vocab", "vocabulary", "word"].includes(compact) || /từ\s*vựng|tu\s*vung|vocab|vocabulary|word/.test(raw)) return "vocab";
+            return fallback;
+        }
+
         function normalizeWord(word) {
             const get = (...keys) => {
                 for (const key of keys) {
@@ -1070,10 +1079,10 @@
                 return "";
             };
 
-            const rawType = get("type", "loai", "Loai", "Loại", "kind", "category", "Category", "Phân loại");
-            const typeHint = normalizeForKey(rawType + " " + get("Mẫu NP", "Mẫu ngữ pháp", "Ngữ pháp", "Grammar", "Pattern"));
-            let type = "vocab";
-            if (/grammar|ngữ\s*pháp|ngu\s*phap|mẫu\s*np|mau\s*np|note|ghi\s*chú|ghi\s*chu/.test(typeHint)) type = "grammar";
+            // CHUẨN MỚI: file import chỉ có 2 loại dữ liệu: Từ vựng / Ngữ pháp.
+            // Ghi chú KHÔNG BAO GIỜ được tách thành loại riêng; nó luôn đi kèm chính dòng đó.
+            const rawType = get("type", "loai", "Loai", "Loại", "kind", "category", "Category", "Phân loại", "Phan loai");
+            let type = normalizeDataType(rawType, "vocab");
 
             const vocab = get("vocab", "kanji", "Kanji", "Kanji / Mẫu", "Kanji/Mẫu", "Kanji / Mau", "Kanji/Mau", "Từ vựng", "Từ Vựng", "Hán tự", "漢字", "Mẫu NP", "Mẫu ngữ pháp", "Ngữ pháp", "Grammar", "Pattern", "Mẫu", "Cấu trúc");
             const amhan = get("amhan", "amHan", "Âm Hán / Loại", "Âm Hán/Loại", "Am Han / Loai", "Am Han/Loai", "Âm Hán", "Am Han", "âm hán", "Âm Hán Việt", "hanviet", "Cấp độ", "Level", "JLPT", "Loại");
@@ -1081,7 +1090,9 @@
             const nghia = get("nghia", "Nghĩa", "nghĩa", "meaning", "Ý nghĩa", "Vietnamese", "Tiếng Việt", "Dịch nghĩa");
             const ghichu = get("ghichu", "ghiChu", "ghi_chu", "Ghi chú", "Ghi Chú", "Ghi chu", "Ghi Chu", "note", "notes", "Note", "Notes", "Lưu ý", "Luu y", "Ghi chú/Lời giải", "Ví dụ", "Example", "Dấu hiệu", "Mẹo");
 
-            if (type === "vocab" && !/[\u4E00-\u9FFF]/.test(vocab) && /(～|ない|ます|なら|ば|たら|ても|によって|として|ために|ように|こと|もの)/.test(vocab + " " + hiragana + " " + ghichu)) {
+            // Chỉ tự đoán ngữ pháp khi KHÔNG có cột Phân loại rõ ràng.
+            // Không dùng cột Ghi chú để đoán, tránh biến ghi chú thành thẻ ngữ pháp riêng.
+            if (!rawType && type === "vocab" && !/[\u4E00-\u9FFF]/.test(vocab) && /(～|ない|ます|なら|ば|たら|ても|によって|として|ために|ように|こと|もの)/.test(vocab + " " + hiragana)) {
                 type = "grammar";
             }
 
@@ -1731,7 +1742,7 @@ ${newText}`;
             const items = vocabularyList
                 .map((word, index) => ({ word, index }))
                 .filter(item => wordMatchesQuery(item.word, query))
-                .filter(item => !onlyNotes || isGrammarItem(item.word) || String(item.word.ghichu || "").trim());
+                .filter(item => !onlyNotes || isGrammarItem(item.word));
 
             if (sortMode === "newest") {
                 items.sort((a, b) => b.index - a.index);
@@ -1773,7 +1784,7 @@ ${newText}`;
                 const noteHTML = word.ghichu
                     ? `<div class="note-cell">${escapeHTML(word.ghichu)}</div>`
                     : `<span class="note-empty">${isGrammar ? 'Không có ghi chú thêm' : 'Không gắn ghi chú'}</span>`;
-                const typeBadge = `<span class="type-badge-table ${isGrammar ? 'grammar' : 'vocab'}">${isGrammar ? 'NGỮ PHÁP/GHI CHÚ' : 'TỪ VỰNG'}</span>`;
+                const typeBadge = `<span class="type-badge-table ${isGrammar ? 'grammar' : 'vocab'}">${isGrammar ? 'NGỮ PHÁP' : 'TỪ VỰNG'}</span>`;
                 const titleInfo = getDisplayTitle(word);
                 const titleLabel = titleInfo.promoted ? `<div class="promoted-source">Tiêu đề từ ${escapeHTML(titleInfo.label)}</div>` : "";
                 const tr = document.createElement('tr');
@@ -1932,6 +1943,7 @@ ${newText}`;
         function columnTypeFromHeader(cell) {
             const h = cleanHeader(cell);
             if (!h) return "";
+            if (["phanloai", "loai", "type", "category", "kind", "datatype"].includes(h) || h.includes("phanloai")) return "type";
             if (["kanji", "han", "hantu", "tuvung", "tunguvung", "vocab", "vocabulary", "word", "japanese", "nhatngu", "漢字", "maunp", "maunguphap", "nguphap", "mau", "pattern", "grammar", "cautruc"].includes(h) || h.includes("kanji") || h.includes("maunguphap") || h.includes("nguphap") || h.includes("grammar") || h.includes("pattern")) return "kanji";
             if (["amhan", "amhanviet", "hanviet", "onhan", "onyomi"].includes(h) || h.includes("amhan") || h.includes("hanviet")) return "amhan";
             if (["hiragana", "hirgana", "kana", "cachd", "cachdoc", "doc", "yomikata", "reading", "furigana", "読み方", "kethop", "cachnoi", "congthuc", "setsuzoku", "接続", "cachdung"].includes(h) || h.includes("hiragana") || h.includes("hirgana") || h.includes("kethop") || h.includes("cachnoi") || h.includes("congthuc")) return "hiragana";
@@ -1965,7 +1977,7 @@ ${newText}`;
         }
 
         function buildMapFromHeader(row, rowIndex) {
-            const map = { headerIndex: rowIndex, kanji: -1, amhan: -1, hiragana: -1, nghia: -1, ghichu: -1, score: 0 };
+            const map = { headerIndex: rowIndex, type: -1, kanji: -1, amhan: -1, hiragana: -1, nghia: -1, ghichu: -1, score: 0 };
             row.forEach((cell, colIndex) => {
                 const type = columnTypeFromHeader(cell);
                 if (!type) return;
@@ -1990,13 +2002,13 @@ ${newText}`;
 
             // Fallback cho file bảng đáp án mẫu: E/F/G/H/I = Kanji/Âm Hán/Hiragana/Nghĩa/Ghi chú.
             if (rows.length > 3 && rows.some(row => isLikelyKanjiText(row[4])) && rows.some(row => isLikelyHiraganaText(row[6]))) {
-                return { headerIndex: 2, kanji: 4, amhan: 5, hiragana: 6, nghia: 7, ghichu: 8, score: 10 };
+                return { headerIndex: 2, type: -1, kanji: 4, amhan: 5, hiragana: 6, nghia: 7, ghichu: 8, score: 10 };
             }
 
             // Fallback tự đoán cột nếu file không có hàng tiêu đề rõ ràng.
             const maxCols = Math.max(...rows.map(row => row.length));
             const contentRows = rows.filter(row => row.some(cell => String(cell || "").trim()));
-            const guessed = { headerIndex: -1, kanji: -1, amhan: -1, hiragana: -1, nghia: -1, ghichu: -1, score: 0 };
+            const guessed = { headerIndex: -1, type: -1, kanji: -1, amhan: -1, hiragana: -1, nghia: -1, ghichu: -1, score: 0 };
             const colScores = [];
             for (let c = 0; c < maxCols; c++) {
                 colScores.push({
@@ -2032,7 +2044,7 @@ ${newText}`;
 
         function isHeaderLikeWord(word) {
             const v = cleanHeader(word.vocab);
-            return ["kanji", "hantu", "tuvung", "vocab", "vocabulary", "word", "loigiai", "ghichu", "note"].includes(v);
+            return ["phanloai", "loai", "kanji", "hantu", "tuvung", "vocab", "vocabulary", "word", "loigiai", "ghichu", "note"].includes(v);
         }
 
         function extractVocabFromRows(rows) {
@@ -2046,6 +2058,7 @@ ${newText}`;
             for (let r = startRow; r < rows.length; r++) {
                 const row = rows[r] || [];
                 const word = normalizeWord({
+                    type: map.type >= 0 ? row[map.type] : "",
                     vocab: map.kanji >= 0 ? row[map.kanji] : "",
                     amhan: map.amhan >= 0 ? row[map.amhan] : "",
                     hiragana: map.hiragana >= 0 ? row[map.hiragana] : "",
@@ -2154,15 +2167,15 @@ function finishImport(words, fileName) {
                 cleaned.push(word);
             });
 
-            const expandedCleaned = splitImportedNotesIntoGrammarCards(cleaned);
+            const importItems = cleaned;
 
-            if (expandedCleaned.length === 0) {
-                alert("Không tìm thấy dữ liệu phù hợp. File chỉ cần có ít nhất một ô có dữ liệu (Kanji/Mẫu, Hiragana/Kết hợp, Nghĩa hoặc Ghi chú). Nếu có cột Ghi chú, hệ thống sẽ tách thành thẻ ngữ pháp riêng.");
+            if (importItems.length === 0) {
+                alert("Không tìm thấy dữ liệu phù hợp. File cần có dữ liệu ở các cột: Phân loại, Kanji/Mẫu, Âm Hán/Loại, Hiragana/Kết hợp, Nghĩa hoặc Ghi chú. Ghi chú sẽ luôn đi kèm dòng từ vựng/ngữ pháp, không tách thành thẻ riêng.");
                 return;
             }
 
             let added = 0, updated = 0, duplicate = 0, skipped = 0;
-            expandedCleaned.forEach(word => {
+            importItems.forEach(word => {
                 const result = upsertWord(word);
                 if (result === "added") added++;
                 else if (result === "updated") updated++;
@@ -2180,7 +2193,7 @@ function finishImport(words, fileName) {
             const parts = [`thêm ${added}`, `cập nhật ${updated}`, `trùng không thêm ${duplicate + duplicateInsideFile + removedFromStorage}`];
             if (skipped) parts.push(`bỏ qua ${skipped}`);
             showToast(`Import xong: ${parts.join(", ")}.`);
-            console.log("Imported file:", fileName, { added, updated, duplicate, duplicateInsideFile, removedFromStorage, skipped, expanded: expandedCleaned.length });
+            console.log("Imported file:", fileName, { added, updated, duplicate, duplicateInsideFile, removedFromStorage, skipped, imported: importItems.length });
         }
 
         function importVocabFile(event) {
@@ -2243,7 +2256,7 @@ function finishImport(words, fileName) {
                 ["Loại", "Kanji/Mẫu", "Âm Hán/Loại", "Hiragana/Kết hợp", "Nghĩa", "Ghi chú"],
                 ...vocabularyList.map(row => {
                     const w = normalizeWord(row);
-                    return [isGrammarItem(w) ? "Ngữ pháp/Ghi chú" : "Từ vựng", w.vocab, w.amhan, w.hiragana, w.nghia, w.ghichu || ""];
+                    return [isGrammarItem(w) ? "Ngữ pháp" : "Từ vựng", w.vocab, w.amhan, w.hiragana, w.nghia, w.ghichu || ""];
                 })
             ];
 
